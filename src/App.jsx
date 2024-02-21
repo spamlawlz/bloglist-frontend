@@ -13,6 +13,8 @@ const App = () => {
   const [author, setAuthor] = useState('')
   const [url, setURL] = useState('')
 
+  const [message, setMessage] = useState(null)
+
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs )
@@ -43,7 +45,8 @@ const App = () => {
         setUsername('')
         setPassword('')
     } catch (exception) {
-        console.log('handleLogin exception')
+        setMessage(`wrong username or password`)
+        setTimeout(() => { setMessage(null)}, 5000)
     }
   }
 
@@ -58,6 +61,8 @@ const App = () => {
     try {
         const blog = await blogService.create({title: title, author: author, url: url})
         setBlogs(blogs.concat(blog))
+        setMessage(`new blog ${blog.title} by ${blog.author} added`)
+        setTimeout(() => { setMessage(null)}, 5000)
     } catch (exception) {
         console.log('handleCreateBlog exception')
     }
@@ -66,6 +71,16 @@ const App = () => {
     setAuthor('')
     setURL('')
   }
+
+  const notification = (message) => (
+    message === null ?
+        null :
+        (
+            <div className='error'>
+                {message}
+            </div>
+        )
+  )
 
   const loginForm = () => (
     <form onSubmit={handleLogin}>
@@ -141,6 +156,7 @@ const App = () => {
 
   return (
     <div>
+        {notification(message)}
         { user === null ?
             loginForm() :
             content()
