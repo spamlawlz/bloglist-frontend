@@ -9,6 +9,10 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
+  const [title, setTitle] = useState('')
+  const [author, setAuthor] = useState('')
+  const [url, setURL] = useState('')
+
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs )
@@ -39,7 +43,7 @@ const App = () => {
         setUsername('')
         setPassword('')
     } catch (exception) {
-        console.log('oops')
+        console.log('handleLogin exception')
     }
   }
 
@@ -47,6 +51,20 @@ const App = () => {
     event.preventDefault()
     window.localStorage.removeItem('loggedBlogListUser')
     setUser(null)
+  }
+
+  const handleCreateBlog = async (event) => {
+    event.preventDefault()
+    try {
+        const blog = await blogService.create({title: title, author: author, url: url})
+        setBlogs(blogs.concat(blog))
+    } catch (exception) {
+        console.log('handleCreateBlog exception')
+    }
+
+    setTitle('')
+    setAuthor('')
+    setURL('')
   }
 
   const loginForm = () => (
@@ -73,20 +91,60 @@ const App = () => {
     </form>
   )
 
+  const blogForm = () => (
+    <form onSubmit={handleCreateBlog}>
+        <div>
+            title:
+            <input 
+                type='text' 
+                name='Title' 
+                value={title} 
+                onChange={({target})=> setTitle(target.value)}
+            />
+        </div>
+        <div>
+            author:
+            <input 
+                type='text' 
+                name='Author' 
+                value={author} 
+                onChange={({target})=> setAuthor(target.value)}
+            />
+        </div>
+        <div>
+            url:
+            <input 
+                type='text' 
+                name='URL' 
+                value={url} 
+                onChange={({target})=> setURL(target.value)}
+            />
+        </div>
+        <button type='submit'>create</button>
+    </form>
+  )
+
+  const content = () => (
+    <div>
+        <h2>blogs</h2>
+        {user.name} logged in
+            <form onSubmit={handleLogout}>
+                <button type='submit'>logout</button>
+            </form>
+        <h2>create new</h2>
+        {blogForm()}
+        {blogs.map(blog =>
+            <Blog key={blog.id} blog={blog} />
+        )}
+    </div>
+  )
+
   return (
     <div>
         { user === null ?
             loginForm() :
-            <div>
-                <p>{user.name} logged in</p>
-                <form onSubmit={handleLogout}>
-                    <button type='submit'>logout</button>
-                </form>
-                <h2>blogs</h2>
-                {blogs.map(blog =>
-                    <Blog key={blog.id} blog={blog} />
-                )}
-            </div>}
+            content()
+        }
     </div>
   )
 }
